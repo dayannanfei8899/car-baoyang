@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>汽车保养登记系统</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+        }
+        body {
+            font-family: "Helvetica Neue", sans-serif;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            background: #f5f6fa;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--primary);
+            font-weight: 500;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #eee;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        button {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            width: 100%;
+            font-size: 16px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        .records {
+            margin-top: 30px;
+        }
+        .record-item {
+            background: white;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>车辆保养登记</h1>
+        <p>扫描二维码提交保养记录</p>
+    </div>
+
+    <div class="form-card">
+        <form id="mainForm">
+            <div class="form-group">
+                <label>车牌号码</label>
+                <input type="text" id="plate" required>
+            </div>
+            
+            <div class="form-group">
+                <label>品牌型号</label>
+                <input type="text" id="model" required>
+            </div>
+
+            <div class="form-group">
+                <label>保养项目</label>
+                <select id="service" required>
+                    <option value="">请选择</option>
+                    <option>机油更换</option>
+                    <option>空滤更换</option>
+                    <option>轮胎换位</option>
+                    <option>刹车检查</option>
+                    <option>四轮定位</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>保养日期</label>
+                <input type="date" id="date" required>
+            </div>
+
+            <div class="form-group">
+                <label>当前里程（km）</label>
+                <input type="number" id="mileage" required>
+            </div>
+
+            <div class="form-group">
+                <label>备注说明</label>
+                <textarea id="note" rows="3"></textarea>
+            </div>
+
+            <button type="submit">提交记录</button>
+        </form>
+    </div>
+
+    <div class="records" id="recordsList"></div>
+
+    <script>
+        // 初始化本地存储
+        let records = JSON.parse(localStorage.getItem('carRecords')) || [];
+        
+        // 表单提交处理
+        document.getElementById('mainForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const newRecord = {
+                id: Date.now(),
+                plate: document.getElementById('plate').value,
+                model: document.getElementById('model').value,
+                service: document.getElementById('service').value,
+                date: document.getElementById('date').value,
+                mileage: document.getElementById('mileage').value,
+                note: document.getElementById('note').value,
+                timestamp: new Date().toISOString()
+            };
+
+            records.push(newRecord);
+            localStorage.setItem('carRecords', JSON.stringify(records));
+            renderRecords();
+            e.target.reset();
+        });
+
+        // 记录渲染
+        function renderRecords() {
+            const container = document.getElementById('recordsList');
+            container.innerHTML = records.map(record => `
+                <div class="record-item">
+                    <h3>${record.plate} - ${record.model}</h3>
+                    <p>项目：${record.service}</p>
+                    <p>日期：${record.date} | 里程：${record.mileage}km</p>
+                    <p>备注：${record.note || '无'}</p>
+                    <button onclick="deleteRecord(${record.id})">删除</button>
+                </div>
+            `).join('');
+        }
+
+        // 删除功能
+        window.deleteRecord = (id) => {
+            records = records.filter(r => r.id !== id);
+            localStorage.setItem('carRecords', JSON.stringify(records));
+            renderRecords();
+        }
+
+        // 初始化渲染
+        renderRecords();
+    </script>
+</body>
+</html>
